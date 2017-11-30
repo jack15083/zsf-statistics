@@ -15,7 +15,7 @@ class StatisticsBuffer
      * 多长时间写一次数据到磁盘s
      * @var integer
      */
-    const WRITE_PERIOD_LENGTH = 60;
+    const WRITE_PERIOD_LENGTH = 10;
 
     /**
      * 多长时间清一次磁盘s
@@ -39,7 +39,6 @@ class StatisticsBuffer
     public static function writeStatisticsToDisk()
     {
         $modules = array_keys(self::$buffer);
-        Log::debug('start write modules ' . print_r($modules, true),  __LINE__, __METHOD__);
         foreach ($modules as $module)
         {
             self::witerModuleStatisticsToDisk($module);
@@ -51,9 +50,7 @@ class StatisticsBuffer
         if(empty($module)) return ;
 
         $module = strtolower($module);
-        Log::debug('start to write ', __LINE__, __METHOD__);
         if(empty(self::$buffer[$module])) {
-            Log::debug('empty buffer', __LINE__, __METHOD__);
             return;
         }
 
@@ -77,14 +74,11 @@ class StatisticsBuffer
         }
 
         file_put_contents($file_dir, $temp_str, FILE_APPEND | LOCK_EX);
-        Log::debug('success write log buffer');
     }
 
     public static function intervalWriteToDisk()
     {
-        Log::debug('timer to write to disk start:' . self::WRITE_PERIOD_LENGTH, 1, __METHOD__);
         swoole_timer_tick(self::WRITE_PERIOD_LENGTH * 1000, function() {
-            Log::debug('write statics data to disk', __LINE__, 'intervalWriteToDisk');
             self::writeStatisticsToDisk();
         });
     }
@@ -93,17 +87,17 @@ class StatisticsBuffer
      * @param $timestamp
      * @return string
      */
-    public static function getFileName($timestamp = '')
+    public static function getFileName($timestamp = null)
     {
-        $time_break_num = (int) ( date("s", $timestamp) / 5) * 5;
-        $fileName = date("H") . ($time_break_num == 13 ? 12 : $time_break_num) . '.log';
+        if(!$timestamp) $timestamp = time();
+        $time_break_num = ((int) (date("i", $timestamp) / 5)) * 5;
+        $fileName = ((int) date("H")) . ($time_break_num == 13 ? 12 : $time_break_num) . '.log';
 
         return $fileName;
     }
 
     public static function intervalCleanDisk()
     {
-        Log::debug(__METHOD__ . 'timer to write to disk start:' . self::WRITE_PERIOD_LENGTH,1, __METHOD__);
         swoole_timer_tick(self::CLEAN_TIME_INTERVAL * 1000, function() {
             self::clearDisk(Config::STATICS_PATH, self::EXPIRE_TIME);
         });

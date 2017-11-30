@@ -23,12 +23,12 @@ class ReportController extends BaseController
      */
     public function addlog()
     {
-        $reqData = $this->getRequetData();
+        $reqData = $this->request->data;
         $arr = explode('|', $reqData);
         if(empty($arr) || count($arr) < 2)
             $this->send('invalid data');
 
-        $this->module = $arr[2];
+        $this->module = strtolower($arr[2]);
 
         if(!isset(StatisticsBuffer::$buffer[$this->module]))
             StatisticsBuffer::$buffer[$this->module] = [];

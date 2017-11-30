@@ -41,9 +41,10 @@ class AjaxController extends BaseController
     {
         $module = strtolower($module);
         $fileDir = Config::STATICS_PATH . $module . '/' . date("Ymd", $startTime) . '/';
-        $fileList = scandir($fileDir, 1);
+        if(is_dir($fileDir)) $fileList = scandir($fileDir, 1);
 
         $data = [];
+        if(empty($fileList)) return $data;
 
         $startFile = (int) $this->getFileName($startTime);
         $endFile   = (int) $this->getFileName($endTime);
@@ -86,9 +87,9 @@ class AjaxController extends BaseController
 
             $data[$fileNameNum] = [
                 'requests_num'     => $requestNum,
-                'average_time'     => $costTime > 0 ? $costTime / $requestNum : 0,
-                'error_rate'       => $errorNum > 0 ? $errorNum / $requestNum : 0,
-                'timeout_rate'     => $timeoutNum > 0 ? $timeoutNum / $requestNum : 0,
+                'average_time'     => $costTime > 0 ? round($costTime / $requestNum, 2) : 0,
+                'error_rate'       => $errorNum > 0 ? round($errorNum / $requestNum, 2) : 0,
+                'timeout_rate'     => $timeoutNum > 0 ? round($timeoutNum / $requestNum,2) : 0,
             ];
         }
 
@@ -99,10 +100,11 @@ class AjaxController extends BaseController
      * @param $timestamp
      * @return string
      */
-    public  function getFileName($timestamp = '')
+    public function getFileName($timestamp = '')
     {
-        $time_break_num = (int) ( date("s", $timestamp) / 5) * 5;
-        $fileName = date("H") . ($time_break_num == 13 ? 12 : $time_break_num);
+        if(!$timestamp) $timestamp = time();
+        $time_break_num = ((int) (date("i", $timestamp) / 5)) * 5;
+        $fileName = ((int) date("H")) . ($time_break_num == 13 ? 12 : $time_break_num) ;
 
         return $fileName;
     }
