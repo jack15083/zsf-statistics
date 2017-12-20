@@ -112,24 +112,20 @@ class StatisticsBuffer
     public static function clearDisk($file = null, $exp_time = 86400)
     {
         $time_now = time();
-        if(is_file($file))
-        {
+        if(is_file($file)) {
             $mtime = filemtime($file);
-            if(!$mtime)
-            {
+            if(!$mtime) {
                 Log::error('file mtime faile', 1, __METHOD__);
                 return;
             }
 
-            if($time_now - $mtime > $exp_time)
-            {
+            if($time_now - $mtime > $exp_time) {
                 unlink($file);
             }
             return;
         }
 
-        foreach (glob($file . "/*") as $file_name)
-        {
+        foreach (glob($file . "/*") as $file_name) {
             self::clearDisk($file_name, $exp_time);
         }
     }
